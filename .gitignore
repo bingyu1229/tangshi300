@@ -1,0 +1,14 @@
+.next/
+node_modules/
+.vscode/
+__pycache__/
+*.pyc
+data/*.sqlite
+data/*.sqlite-journal
+public/audio/*.wav
+public/audio/*.mp3
+*.log
+.next-dev-*
+dev-server*.log
+.env
+.env.local
