@@ -1,0 +1,30 @@
+{
+  "name": "tangshi300",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "convert:data": "tsx scripts/convert-tangshi-xml.ts",
+    "seed": "tsx scripts/seed-db.ts",
+    "audio:generate": "tsx scripts/generate-audio.ts",
+    "prepare:v1": "npm run convert:data && npm run seed"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.2.5",
+    "lucide-react": "^0.468.0",
+    "next": "^15.1.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "sql.js": "^1.12.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "@types/sql.js": "^1.4.9",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
