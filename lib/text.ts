@@ -55,3 +55,39 @@ export function compactText(value: string, max = 80): string {
   const text = stripHtml(value).replace(/\s+/g, " ");
   return text.length > max ? `${text.slice(0, max)}...` : text;
 }
+
+export function buildSearchTerms(value: string): string[] {
+  const normalized = value
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[^\p{Script=Han}\p{Letter}\p{Number}]+/gu, " ")
+    .trim();
+  const terms: string[] = [];
+
+  for (const token of normalized.split(/\s+/).filter(Boolean)) {
+    if (hasHan(token)) {
+      terms.push(...hanNgrams(token));
+    } else {
+      terms.push(token);
+    }
+  }
+
+  return [...new Set(terms)];
+}
+
+function hasHan(value: string): boolean {
+  return /\p{Script=Han}/u.test(value);
+}
+
+function hanNgrams(value: string): string[] {
+  const chars = [...value];
+  const grams = new Set<string>();
+
+  for (const size of [1, 2, 3]) {
+    for (let index = 0; index <= chars.length - size; index += 1) {
+      grams.add(chars.slice(index, index + size).join(""));
+    }
+  }
+
+  return [...grams];
+}

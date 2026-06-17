@@ -49,9 +49,13 @@ Observed results:
 
 ### 1. Search scalability
 
-Current search uses `LIKE` across seven columns. This is acceptable for 50 poems, but it will become the first obvious bottleneck when the project moves toward a larger corpus.
+Status: improved on 2026-06-17.
 
-Recommendation: add a SQLite FTS5 virtual table for searchable poem text, seed it alongside `poems`, and route search through `MATCH` with a fallback path if FTS5 is unavailable.
+Search now uses a generated `poem_search_terms` inverted index instead of scanning seven poem text columns for every request. The seed step normalizes searchable fields into CJK single-character, bigram, trigram, and Latin/number terms, stores them with per-field weights, and the query path ranks matches with indexed term lookups.
+
+Why this approach: the current `sql.js` package exposes FTS4 but not FTS5, and direct verification showed the available FTS tokenizer does not behave well for Chinese n-gram search. A plain indexed term table is more portable and keeps Chinese substring search predictable in this runtime.
+
+Fallback: if the term index is empty or unavailable, `searchPoems` still falls back to the previous `LIKE` search.
 
 ### 2. Data quality visibility
 
@@ -88,5 +92,5 @@ Recommendation: only add environment overrides when deployment or alternate data
 1. Generate and validate one Qwen3-TTS audio file end to end.
 2. Add a minimal automated test harness for import/text/database learning logic.
 3. Add an import quality report for missing detail sections.
-4. Implement SQLite FTS5 before expanding the content set beyond 50 poems.
+4. Load-test indexed search with the full parsed corpus before increasing the visible app sample.
 5. Decide whether generated audio belongs in git for v1 release or should be produced locally after checkout.

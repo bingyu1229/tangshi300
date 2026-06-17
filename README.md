@@ -55,7 +55,7 @@ types/               Local TypeScript declarations
 
 ## Optimization Priorities
 
-1. Move search from multi-column `LIKE` queries to SQLite FTS5 before expanding beyond the v1 50-poem sample.
+1. Search now uses a generated `poem_search_terms` inverted index for CJK n-gram and Latin/number term lookup, with the old `LIKE` scan kept as a fallback.
 2. Add automated smoke tests around import, seed, daily recommendation, answer checking, and review-book state changes.
 3. Add a structured data-quality report for missing notes, translations, and appreciation sections.
 4. Keep generated assets out of git unless they are intentional release artifacts: SQLite files, `.next`, logs, `node_modules`, and generated audio remain ignored.
