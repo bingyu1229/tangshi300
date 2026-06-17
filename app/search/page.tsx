@@ -8,14 +8,11 @@ export default async function SearchPage() {
 
   return (
     <div className="page">
-      <section className="panel">
-        <p className="section-title">搜索</p>
-        <h1 className="poem-title">寻章摘句</h1>
-        <p className="poem-meta">可按题目、作者、体裁、正文、注释、译文、赏析搜索。</p>
+      <section className="page-heading">
+        <h1>诗库 · 搜索</h1>
+        <p>搜索古诗文，发现经典之美</p>
       </section>
-      <section className="content-section">
-        <SearchClient initialPoems={poems} />
-      </section>
+      <SearchClient initialPoems={poems} />
     </div>
   );
 }

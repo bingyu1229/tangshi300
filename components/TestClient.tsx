@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Check, Send } from "lucide-react";
+import { BookOpen, Check, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import type { PoemDetail, TestPrompt } from "@/lib/types";
 
@@ -28,36 +28,70 @@ export function TestClient({ poem, prompt }: { poem: PoemDetail; prompt: TestPro
   }
 
   return (
-    <div className="panel">
-      <p className="section-title">默写测试</p>
-      <h1 className="poem-title">{poem.title}</h1>
-      <p className="poem-meta">{poem.author}</p>
-      <div className="test-prompt">{prompt.promptLine}</div>
-      <form className="stack" onSubmit={submit}>
-        <input
-          className="answer-input"
-          value={answer}
-          onChange={(event) => setAnswer(event.target.value)}
-          placeholder="请输入下一句"
-          aria-label="输入下一句"
-          disabled={done}
-        />
-        <button className="button" type="submit" disabled={done || !answer.trim()}>
-          {done ? <Check size={18} /> : <Send size={18} />}
-          {done ? "已完成" : "提交"}
-        </button>
-      </form>
-      {feedback ? <p className={`feedback ${done ? "success" : "error"}`}>{feedback}</p> : null}
-      {done ? (
-        <div className="actions">
-          <Link className="button secondary" href="/review-book">
-            查看复习册
-          </Link>
-          <Link className="button ghost" href="/">
-            返回今日推荐
-          </Link>
+    <div className="test-shell">
+      <Link className="test-back" href={`/poems/${poem.id}`}>
+        <ChevronLeft size={23} />
+        默写测试
+      </Link>
+      <p className="test-progress-label">第 2 / 4 题</p>
+      <div className="test-progress" aria-label="第 2 / 4 题">
+        <span />
+      </div>
+      <p className="prompt-label">请默写下句</p>
+      <h1 className="test-prompt-line">{prompt.promptLine}</h1>
+      <div className="test-ornament" aria-hidden="true" />
+      <form onSubmit={submit}>
+        <div className="panel answer-card">
+          <label className="answer-line">
+            <span className="answer-check">
+              <Check size={23} />
+            </span>
+            <input
+              className="answer-input"
+              value={answer}
+              onChange={(event) => setAnswer(event.target.value)}
+              placeholder="请输入下一句"
+              aria-label="输入下一句"
+              disabled={done}
+              maxLength={20}
+            />
+          </label>
+          <span className="answer-count">{answer.length} / 20</span>
         </div>
-      ) : null}
+        {feedback ? (
+          <div className={`feedback-card ${done ? "success" : "error"}`}>
+            <CheckCircle2 size={46} />
+            <p>
+              <strong>{done ? "回答正确！" : "还差一点"}</strong>
+              {done ? "太棒了，继续保持！" : feedback}
+            </p>
+          </div>
+        ) : null}
+        <div className="test-actions">
+          <Link className="button secondary" href={`/poems/${poem.id}`}>
+            查看解析
+          </Link>
+          {done ? (
+            <Link className="button" href="/review-book">
+              下一题
+              <ChevronRight size={18} />
+            </Link>
+          ) : (
+            <button className="button" type="submit" disabled={!answer.trim()}>
+              下一题
+              <ChevronRight size={18} />
+            </button>
+          )}
+        </div>
+      </form>
+      <aside className="panel reminder-card">
+        <BookOpen size={38} />
+        <div>
+          <h2>本次默写完成后将加入复习册</h2>
+          <p>完成全部 4 题后，可在复习册中巩固复习</p>
+        </div>
+      </aside>
+      <p className="test-tip">小贴士：遇到不会的诗句，可以先跳过，完成所有题目后再回头复习。</p>
     </div>
   );
 }

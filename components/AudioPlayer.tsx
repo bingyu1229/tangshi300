@@ -1,6 +1,6 @@
 "use client";
 
-import { Volume2 } from "lucide-react";
+import { Play, Volume2 } from "lucide-react";
 import type { PoemAudio } from "@/lib/types";
 
 export function AudioPlayer({ audio, text }: { audio?: PoemAudio; text: string }) {
@@ -18,24 +18,28 @@ export function AudioPlayer({ audio, text }: { audio?: PoemAudio; text: string }
 
   if (audio?.status === "ready" && audio.filePath) {
     return (
-      <div className="audio-box">
-        <audio controls preload="none" src={audio.filePath}>
+      <div className="audio-row">
+        <button className="play-button" type="button" aria-label="播放诗词音频">
+          <Play size={18} fill="currentColor" />
+        </button>
+        <div className="audio-track" aria-hidden="true" />
+        <span className="audio-time">00:00 / {audio.durationMs ? `${Math.round(audio.durationMs / 1000)}s` : "00:32"}</span>
+        <Volume2 size={18} color="#6d665e" aria-hidden="true" />
+        <audio controls preload="none" src={audio.filePath} className="sr-audio">
           您的浏览器不支持音频播放。
         </audio>
-        <p className="feedback">
-          {audio.model} · {audio.speaker}
-        </p>
       </div>
     );
   }
 
   return (
-    <div className="audio-box">
-      <button className="button secondary" type="button" onClick={speak}>
-        <Volume2 size={18} />
-        朗读诗词
+    <div className="audio-row">
+      <button className="play-button" type="button" onClick={speak} aria-label="朗读诗词">
+        <Play size={18} fill="currentColor" />
       </button>
-      <p className="feedback">Qwen3-TTS 音频尚未生成，当前使用浏览器朗读兜底。</p>
+      <div className="audio-track" aria-hidden="true" />
+      <span className="audio-time">00:00 / 00:32</span>
+      <Volume2 size={18} color="#6d665e" aria-hidden="true" />
     </div>
   );
 }

@@ -12,9 +12,9 @@ export function RemoveReviewButton({ poemId }: { poemId: string }) {
   }
 
   return (
-    <button className="button secondary" type="button" onClick={remove}>
+    <button className="button danger compact" type="button" onClick={remove}>
       <Trash2 size={18} />
-      移出复习册
+      移除
     </button>
   );
 }
