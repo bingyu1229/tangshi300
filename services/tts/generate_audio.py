@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import sqlite3
 import time
 from datetime import datetime, timezone
@@ -16,18 +15,6 @@ import torch
 MODEL_NAME = "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice"
 DEFAULT_SPEAKERS = ("Serena", "Uncle_Fu")
 DB_PATH = Path("data/tangshi300.sqlite")
-SOX_DIRS = (
-    Path(r"C:\Program Files (x86)\sox-14-4-2"),
-    Path(r"C:\Program Files\sox-14-4-2"),
-)
-
-
-def ensure_sox_on_path() -> None:
-    existing = os.environ.get("PATH", "")
-    for sox_dir in SOX_DIRS:
-        if sox_dir.joinpath("sox.exe").exists() and str(sox_dir) not in existing:
-            os.environ["PATH"] = f"{sox_dir}{os.pathsep}{existing}"
-            return
 
 
 def poem_text(poem: dict[str, Any]) -> str:
@@ -98,7 +85,6 @@ def upsert_audio(
 
 
 def load_model() -> Any:
-    ensure_sox_on_path()
     from qwen_tts import Qwen3TTSModel
 
     return Qwen3TTSModel.from_pretrained(

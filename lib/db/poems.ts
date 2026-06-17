@@ -1,6 +1,9 @@
+import fs from "node:fs";
+import type { Database } from "sql.js";
 import { getDb, allRows, firstRow, persistDb } from "@/lib/db/sqlite";
+import { audioPublicDir } from "@/lib/paths";
 import type { LearningStatus, Poem, PoemAudio, PoemDetail, PoemSummary, TestPrompt } from "@/lib/types";
-import { isCorrectAnswer } from "@/lib/text";
+import { buildSearchTerms, isCorrectAnswer } from "@/lib/text";
 
 type PoemRow = {
   id: string;
@@ -28,6 +31,8 @@ type AudioRow = {
 };
 
 const defaultStatus: LearningStatus = "new";
+const defaultAudioModel = "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice";
+const defaultAudioSpeaker = "Uncle_Fu";
 
 function toPoem(row: PoemRow): Poem {
   return {
@@ -52,7 +57,12 @@ function toSummary(row: PoemRow): PoemSummary {
     genre: row.genre,
     content: row.content,
     status: row.status ?? defaultStatus,
-    audioStatus: row.audio_status === "ready" ? "ready" : row.audio_status === "failed" ? "failed" : "missing",
+    audioStatus:
+      row.audio_status === "ready" || audioFromFile(row.id)
+        ? "ready"
+        : row.audio_status === "failed"
+          ? "failed"
+          : "missing",
   };
 }
 
@@ -70,6 +80,25 @@ function toAudio(row: AudioRow | null): PoemAudio | undefined {
     status: row.status,
     errorMessage: row.error_message,
   };
+}
+
+function audioFromFile(poemId: string): PoemAudio | undefined {
+  for (const extension of ["wav", "mp3"]) {
+    const fileName = `${poemId}.${extension}`;
+    if (fs.existsSync(`${audioPublicDir}/${fileName}`)) {
+      return {
+        poemId,
+        speaker: defaultAudioSpeaker,
+        model: defaultAudioModel,
+        filePath: `/audio/${fileName}`,
+        durationMs: null,
+        status: "ready",
+        errorMessage: null,
+      };
+    }
+  }
+
+  return undefined;
 }
 
 export async function listPoems(limit = 50): Promise<PoemSummary[]> {
@@ -90,6 +119,11 @@ export async function listPoems(limit = 50): Promise<PoemSummary[]> {
 
 export async function searchPoems(query: string): Promise<PoemSummary[]> {
   const db = await getDb();
+  const indexedRows = searchPoemsWithIndex(db, query);
+  if (indexedRows) {
+    return indexedRows.map(toSummary);
+  }
+
   const keyword = `%${query.trim()}%`;
   const rows = allRows<PoemRow>(
     db,
@@ -110,6 +144,46 @@ export async function searchPoems(query: string): Promise<PoemSummary[]> {
   );
 
   return rows.map(toSummary);
+}
+
+function searchPoemsWithIndex(db: Database, query: string): PoemRow[] | null {
+  if (!hasSearchIndexRows(db)) {
+    return null;
+  }
+
+  const terms = buildSearchTerms(query).slice(0, 24);
+  if (!terms.length) {
+    return null;
+  }
+
+  const placeholders = terms.map(() => "?").join(", ");
+
+  try {
+    return allRows<PoemRow>(
+      db,
+      `SELECT p.*, lp.status, pa.status AS audio_status
+       FROM poem_search_terms pst
+       JOIN poems p ON p.id = pst.poem_id
+       LEFT JOIN learning_progress lp ON lp.poem_id = p.id
+       LEFT JOIN poem_audio pa ON pa.poem_id = p.id
+       WHERE pst.term IN (${placeholders})
+       GROUP BY p.id
+       ORDER BY SUM(pst.weight) DESC, COUNT(pst.term) DESC, p.title
+       LIMIT 50`,
+      terms,
+    );
+  } catch {
+    return null;
+  }
+}
+
+function hasSearchIndexRows(db: Database): boolean {
+  try {
+    const row = firstRow<{ count: number }>(db, "SELECT count(*) AS count FROM poem_search_terms");
+    return Boolean(row && row.count > 0);
+  } catch {
+    return false;
+  }
 }
 
 export async function getPoemDetail(id: string): Promise<PoemDetail | null> {
@@ -139,7 +213,7 @@ export async function getPoemDetail(id: string): Promise<PoemDetail | null> {
   return {
     ...toPoem(row),
     status: row.status ?? defaultStatus,
-    audio: toAudio(audioRow),
+    audio: toAudio(audioRow) ?? audioFromFile(id),
   };
 }
 

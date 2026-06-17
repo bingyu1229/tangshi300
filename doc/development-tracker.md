@@ -184,7 +184,7 @@ Optimization backlog:
 
 | Priority | Area | Recommendation | Status |
 | --- | --- | --- | --- |
-| P1 | Search | Replace multi-column `LIKE` with SQLite FTS5 before full-corpus search. | Todo |
+| P1 | Search | Replace multi-column live `LIKE` scan with indexed `poem_search_terms` CJK n-gram lookup. | Done |
 | P1 | TTS | Generate and validate one real Qwen3-TTS audio file, then batch the 50-poem sample. | In Progress |
 | P2 | Tests | Add automated smoke/unit tests for import, answer normalization, daily recommendation, and review-book state. | Todo |
 | P2 | Data quality | Write a report listing poems with missing notes, translation, or appreciation. | Todo |
@@ -201,10 +201,19 @@ Optimization backlog:
 | v1.0 进度存储 | 单用户本地 SQLite | 待审阅 |
 | 前端视觉风格 | 简洁、中国古典配色：宣纸、墨色、朱砂、青绿或黛蓝 | 已记录 |
 
+### 2026-06-17
+
+- Done: Improved search scalability by adding `poem_search_terms`, an indexed inverted search table populated during seed.
+- Done: Added CJK single-character, bigram, trigram, and Latin/number search-term extraction in `lib/text.ts`.
+- Done: Updated `searchPoems` to prefer indexed term lookup with weighted ranking and retain the old `LIKE` query as a fallback.
+- Done: `npm run prepare:v1` passed and indexed 48,848 search-term rows for the 50-poem sample.
+- Done: Direct SQLite checks returned ranked results for author, phrase, and poem-line searches.
+- Done: `npm run build` passed.
+
 ## 下一步
 
-1. Review `doc/project-overview.md` and confirm the optimization priorities.
+1. Review `doc/project-overview.md` and confirm the remaining optimization priorities.
 2. Generate one Qwen3-TTS audio file end to end and verify playback from a poem detail page.
-3. Add automated smoke tests for import, seed, daily recommendation, answer checking, and review-book removal.
+3. Add automated smoke tests for import, seed, daily recommendation, answer checking, review-book removal, and indexed search.
 4. Add a data-quality report for the 28 poems currently missing one or more detail sections.
-5. Plan the SQLite FTS5 search migration before increasing the poem corpus beyond the v1 50-poem sample.
+5. Load-test indexed search with the full parsed corpus before increasing the visible app sample.

@@ -82,9 +82,19 @@ export function ensureSchema(database: Database): void {
       FOREIGN KEY (poem_id) REFERENCES poems(id)
     );
 
+    CREATE TABLE IF NOT EXISTS poem_search_terms (
+      term TEXT NOT NULL,
+      poem_id TEXT NOT NULL,
+      weight INTEGER NOT NULL DEFAULT 1,
+      PRIMARY KEY (term, poem_id),
+      FOREIGN KEY (poem_id) REFERENCES poems(id)
+    );
+
     CREATE INDEX IF NOT EXISTS idx_poems_title ON poems(title);
     CREATE INDEX IF NOT EXISTS idx_poems_author ON poems(author);
     CREATE INDEX IF NOT EXISTS idx_progress_status ON learning_progress(status);
+    CREATE INDEX IF NOT EXISTS idx_search_terms_term ON poem_search_terms(term);
+    CREATE INDEX IF NOT EXISTS idx_search_terms_poem ON poem_search_terms(poem_id);
   `);
 }
 
