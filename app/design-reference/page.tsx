@@ -9,7 +9,6 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  CircleUserRound,
   Clock3,
   Home,
   Medal,
@@ -23,7 +22,6 @@ import {
   Smartphone,
   Star,
   Trash2,
-  User,
   Volume2,
 } from "lucide-react";
 import homepageShot from "@/ui/homepage.png";
@@ -49,14 +47,14 @@ type Shot = {
 const shots: Shot[] = [
   {
     title: "Homepage",
-    file: "UI/homepage.png",
+    file: "ui/homepage.png",
     image: homepageShot,
     purpose: "Daily learning dashboard with search, recommendation, study actions, progress, and activity summaries.",
     elements: [
       "Desktop browser chrome and mobile device frame",
       "Tangshi300 wordmark with red 300 and vertical seal",
-      "Top nav: 首页, 诗库, 学习, 复习册, 我的",
-      "Avatar dropdown on desktop and hamburger menu on mobile",
+      "Top nav: 首页, 诗库, 学习, 复习册",
+      "Hamburger menu on mobile",
       "Greeting, gold flower dot, encouragement copy",
       "Learning status pill with mastered and review-book counts",
       "Search bar with icon, placeholder, teal search button",
@@ -66,12 +64,12 @@ const shots: Shot[] = [
       "Circular progress module, daily target, streak count, flame accent",
       "Learning data tiles: 已掌握, 学习中, 复习册, 累计学习",
       "Recent learning list and recommendation list",
-      "Mobile bottom tab bar with five icons and active red state",
+      "Mobile bottom tab bar with four icons and active red state",
     ],
   },
   {
     title: "Poem Detail",
-    file: "UI/poem.png",
+    file: "ui/poem.png",
     image: poemShot,
     purpose: "Focused reading page for one poem, with audio, actions, and expandable interpretation sections.",
     elements: [
@@ -88,7 +86,7 @@ const shots: Shot[] = [
   },
   {
     title: "Search / Poetry Library",
-    file: "UI/search.png",
+    file: "ui/search.png",
     image: searchShot,
     purpose: "Poem discovery page with search modes, sorting, highlighted matches, result cards, and pagination.",
     elements: [
@@ -103,7 +101,7 @@ const shots: Shot[] = [
   },
   {
     title: "Review Book",
-    file: "UI/review.png",
+    file: "ui/review.png",
     image: reviewShot,
     purpose: "Review management page showing mastered poems, progress, filters, and repeat/remove actions.",
     elements: [
@@ -120,7 +118,7 @@ const shots: Shot[] = [
   },
   {
     title: "Dictation Test",
-    file: "UI/test.png",
+    file: "ui/test.png",
     image: testShot,
     purpose: "Focused memorization flow with progress, prompt, answer input, feedback, and continuation actions.",
     elements: [
@@ -191,7 +189,6 @@ function IconStrip() {
     { label: "诗库", Icon: BookOpenText },
     { label: "学习", Icon: BookOpen },
     { label: "复习册", Icon: CalendarDays },
-    { label: "我的", Icon: User },
     { label: "播放", Icon: Play },
     { label: "收藏", Icon: Star },
     { label: "分享", Icon: Share2 },
@@ -234,9 +231,6 @@ function MiniHomeSpec() {
           </span>
           <span>
             <CalendarDays size={16} /> 复习册
-          </span>
-          <span>
-            <CircleUserRound size={16} /> 我的
           </span>
         </nav>
         <div className={styles.avatar}>

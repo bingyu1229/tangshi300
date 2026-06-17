@@ -1,4 +1,6 @@
+import Image from "next/image";
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import {
   BookMarked,
   BookOpen,
@@ -7,37 +9,68 @@ import {
   Flame,
   Medal,
   PenLine,
-  RefreshCcw,
   Search,
 } from "lucide-react";
-import { getDailyPoem, listPoems } from "@/lib/db/poems";
-import { InkArtwork } from "@/components/InkArtwork";
+import { HomeRecommendations } from "@/components/HomeRecommendations";
+import { getDailyPoem, getRecentLearning, getReviewBook, listPoems } from "@/lib/db/poems";
+import poemCardBackground from "@/ui/poem-card-background-sm.png";
+import poemThumbnail from "@/ui/thumbnail-sm.png";
 
 export const dynamic = "force-dynamic";
 
+function greetingForNow() {
+  const hour = new Date().getHours();
+  if (hour < 6) return "夜深了，诗友";
+  if (hour < 12) return "早安，诗友";
+  if (hour < 18) return "午安，诗友";
+  return "晚安，诗友";
+}
+
 export default async function HomePage() {
-  const [dailyPoem, poems] = await Promise.all([getDailyPoem(), listPoems(6)]);
-  const previewPoems = poems.slice(0, 3);
+  const [dailyPoem, poems, reviewBook, recentLearning] = await Promise.all([
+    getDailyPoem(),
+    listPoems(50),
+    getReviewBook(),
+    getRecentLearning(2),
+  ]);
+  const recommendationPoems = poems.filter((poem) => poem.id !== dailyPoem?.id);
+  const masteredCount = reviewBook.length;
+  const learningCount = poems.filter((poem) => poem.status === "learning").length;
+  const totalCount = poems.length;
+  const goalCount = Math.max(5, masteredCount);
+  const progressPercent = goalCount ? Math.min(100, Math.round((masteredCount / goalCount) * 100)) : 0;
 
   return (
-    <div className="page">
+    <div
+      className="page page-home"
+      style={
+        {
+          "--page-bg": `url(${poemCardBackground.src})`,
+          "--card-bg": `url(${poemCardBackground.src})`,
+        } as CSSProperties
+      }
+    >
       {dailyPoem ? (
         <>
           <section className="hero-home" aria-label="今日推荐">
             <div className="home-main">
-              <div className="greeting">
-                <h1>
-                  午安，诗友 <span className="gold-dot" />
-                </h1>
-                <p>每天进步一点点，诗心自明。</p>
+              <div className="home-top-row">
+                <div className="greeting">
+                  <h1>
+                    {greetingForNow()}
+                    <span className="gold-dot" />
+                  </h1>
+                  <p>每天进步一点点，诗心自明。</p>
+                </div>
+                <Link className="status-pill" href="/review-book">
+                  <BookMarked size={18} />
+                  <span>
+                    你已掌握 <strong>{masteredCount}</strong> 首，复习册中有 <strong>{reviewBook.length}</strong> 首
+                  </span>
+                  <ChevronRight size={16} />
+                </Link>
               </div>
-              <Link className="status-pill" href="/review-book">
-                <BookMarked size={18} />
-                <span>
-                  你已掌握 <strong>28</strong> 首，复习册中有 <strong>28</strong> 首
-                </span>
-                <ChevronRight size={16} />
-              </Link>
+
               <form className="search-form" action="/search">
                 <Search size={20} />
                 <input className="search-input" name="q" placeholder="搜索题目、作者、关键词或诗句" aria-label="搜索唐诗" />
@@ -45,11 +78,22 @@ export default async function HomePage() {
                   搜索
                 </button>
               </form>
+
               <div>
                 <p className="section-kicker">今日推荐</p>
                 <article className="panel featured-poem">
-                  <InkArtwork title={dailyPoem.title} variant="moon" size="medium" />
-                  <div>
+                  <div className="featured-thumbnail-frame">
+                    <Image
+                      src={poemThumbnail}
+                      alt={`${dailyPoem.title} 水墨缩略图`}
+                      className="featured-thumbnail"
+                      fill
+                      sizes="(max-width: 660px) 84px, 188px"
+                      priority
+                      placeholder="blur"
+                    />
+                  </div>
+                  <div className="featured-copy">
                     <h2>{dailyPoem.title}</h2>
                     <div className="poem-meta">
                       <span>{dailyPoem.author}</span>
@@ -62,26 +106,23 @@ export default async function HomePage() {
                     </div>
                     <div className="tag-row">
                       <span className="tag">{dailyPoem.genre || "唐诗"}</span>
-                      <span className="tag">思乡</span>
+                      <span className="tag">推荐</span>
                     </div>
+                    <Link className="detail-link featured-detail-link" href={`/poems/${dailyPoem.id}`}>
+                      查看详情 <ChevronRight size={16} />
+                    </Link>
                   </div>
                   <span className="card-star">☆</span>
                 </article>
-                <div className="carousel-dots" aria-hidden="true">
-                  <span />
-                  <span />
-                  <span />
-                  <span />
-                  <span />
-                </div>
               </div>
             </div>
+
             <aside className="side-stack">
               <Link className="learning-tile primary" href={`/poems/${dailyPoem.id}/test`}>
                 <PenLine size={34} />
                 <span>
                   <strong>继续学习</strong>
-                  <span>今日计划：学习 3 首</span>
+                  <span>今日计划：学习 1 首</span>
                 </span>
                 <ChevronRight size={22} />
               </Link>
@@ -89,18 +130,20 @@ export default async function HomePage() {
                 <BookMarked size={18} />
                 <span>
                   <strong>复习册</strong>
-                  <span>复习 28 首</span>
+                  <span>复习 {reviewBook.length} 首</span>
                 </span>
                 <ChevronRight size={22} />
               </Link>
               <div className="panel progress-card">
-                <div className="progress-ring">60%</div>
+                <div className="progress-ring" style={{ "--progress": `${progressPercent}%` } as CSSProperties}>
+                  <span>{progressPercent}%</span>
+                </div>
                 <p>
-                  已学 3 首
+                  已学 {masteredCount} 首
                   <br />
-                  目标 5 首
+                  目标 {goalCount} 首
                   <br />
-                  连续学习 7 天 <Flame size={15} color="#d85832" />
+                  唐诗总数 {totalCount} 首 <Flame size={15} color="#d85832" />
                 </p>
               </div>
             </aside>
@@ -114,7 +157,7 @@ export default async function HomePage() {
                 <p>
                   已掌握
                   <br />
-                  <strong>28</strong> 首
+                  <strong>{masteredCount}</strong> 首
                 </p>
               </div>
               <div className="stat-card">
@@ -122,7 +165,7 @@ export default async function HomePage() {
                 <p>
                   学习中
                   <br />
-                  <strong>16</strong> 首
+                  <strong>{learningCount}</strong> 首
                 </p>
               </div>
               <div className="stat-card">
@@ -130,15 +173,15 @@ export default async function HomePage() {
                 <p>
                   复习册
                   <br />
-                  <strong>28</strong> 首
+                  <strong>{reviewBook.length}</strong> 首
                 </p>
               </div>
               <div className="stat-card">
                 <Medal size={34} color="#b98535" />
                 <p>
-                  累计学习
+                  诗库
                   <br />
-                  <strong>37</strong> 天
+                  <strong>{totalCount}</strong> 首
                 </p>
               </div>
             </div>
@@ -146,37 +189,26 @@ export default async function HomePage() {
               <div className="panel list-panel">
                 <div className="panel-heading">
                   <h2>最近学习</h2>
-                  <Link href="/review-book">查看全部 <ChevronRight size={14} /></Link>
+                  <Link href="/review-book">
+                    查看全部 <ChevronRight size={14} />
+                  </Link>
                 </div>
-                {previewPoems.slice(0, 2).map((poem, index) => (
-                  <div className="mini-row" key={poem.id}>
-                    <div>
-                      <h3>{poem.title}</h3>
-                      <p>{poem.author} 【唐代】 <span className="tag">{poem.genre || "唐诗"}</span></p>
-                    </div>
-                    <span>{index === 0 ? "今日 10:23" : "今日 09:41"}</span>
-                    <span className="success-text">已掌握 ✓</span>
-                  </div>
-                ))}
-              </div>
-              <div className="panel list-panel">
-                <div className="panel-heading">
-                  <h2>为你推荐</h2>
-                  <button type="button">
-                    <RefreshCcw size={14} /> 换一批
-                  </button>
-                </div>
-                {previewPoems.map((poem) => (
+                {recentLearning.length ? recentLearning.map((poem) => (
                   <Link className="mini-row" href={`/poems/${poem.id}`} key={poem.id}>
                     <div>
                       <h3>{poem.title}</h3>
-                      <p>{poem.author} 【唐代】</p>
+                      <p>
+                        {poem.author} 【唐代】 <span className="tag">{poem.genre || "唐诗"}</span>
+                      </p>
                     </div>
-                    <span />
-                    <ChevronRight size={16} />
+                    <span>{poem.status === "review_book" ? "已掌握" : "学习中"}</span>
+                    <span className="success-text">已记录</span>
                   </Link>
-                ))}
+                )) : (
+                  <div className="empty mini-empty">还没有学习记录，完成一次学习后会显示在这里。</div>
+                )}
               </div>
+              <HomeRecommendations poems={recommendationPoems} />
             </div>
           </section>
         </>

@@ -7,18 +7,27 @@ import { InkArtwork, artworkVariant } from "@/components/InkArtwork";
 import type { PoemSummary } from "@/lib/types";
 import { compactText } from "@/lib/text";
 
-export function SearchClient({ initialPoems }: { initialPoems: PoemSummary[] }) {
-  const [query, setQuery] = useState("");
+type SearchClientProps = {
+  initialPoems: PoemSummary[];
+  initialQuery?: string;
+};
+
+export function SearchClient({ initialPoems, initialQuery = "" }: SearchClientProps) {
+  const [query, setQuery] = useState(initialQuery);
   const [poems, setPoems] = useState(initialPoems);
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
-    const response = await fetch(`/api/poems?q=${encodeURIComponent(query)}`);
-    const data = (await response.json()) as { poems: PoemSummary[] };
-    setPoems(data.poems);
-    setLoading(false);
+
+    try {
+      const response = await fetch(`/api/poems?q=${encodeURIComponent(query)}`);
+      const data = (await response.json()) as { poems: PoemSummary[] };
+      setPoems(data.poems);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -74,15 +83,6 @@ export function SearchClient({ initialPoems }: { initialPoems: PoemSummary[] }) 
               </span>
             </Link>
           ))}
-          <div className="pagination" aria-label="搜索结果分页">
-            <button type="button">‹</button>
-            <span className="is-active">1</span>
-            <span>2</span>
-            <span>3</span>
-            <span>…</span>
-            <span>5</span>
-            <button type="button">›</button>
-          </div>
         </div>
       ) : (
         <div className="empty">没有找到匹配的诗。</div>

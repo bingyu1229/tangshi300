@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:clean-env": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/with-clean-path.ps1 npm run dev",
     "build": "next build",
     "start": "next start",
     "convert:data": "tsx scripts/convert-tangshi-xml.ts",

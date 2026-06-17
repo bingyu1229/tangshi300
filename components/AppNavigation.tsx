@@ -1,19 +1,21 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, BookOpenText, CalendarDays, ChevronDown, Home, Menu, User } from "lucide-react";
+import { BookOpen, BookOpenText, CalendarDays, Home, Menu } from "lucide-react";
+import stampLogo from "@/ui/stamp-logo-sm.png";
 
 const navItems = [
   { href: "/", label: "首页", icon: Home, key: "home" },
   { href: "/search", label: "诗库", icon: BookOpenText, key: "library" },
-  { href: "/", label: "学习", icon: BookOpen, key: "learn" },
+  { href: "/learn", label: "学习", icon: BookOpen, key: "learn" },
   { href: "/review-book", label: "复习册", icon: CalendarDays, key: "review" },
-  { href: "#profile", label: "我的", icon: User, key: "profile" },
 ];
 
 function activeKey(pathname: string) {
   if (pathname === "/review-book") return "review";
+  if (pathname === "/learn") return "learn";
   if (pathname === "/search" || (pathname.startsWith("/poems/") && !pathname.endsWith("/test"))) return "library";
   if (pathname.startsWith("/poems/") && pathname.endsWith("/test")) return "learn";
   return "home";
@@ -29,7 +31,7 @@ export function AppNavigation() {
         <Link href="/" className="brand-wordmark" aria-label="Tangshi300 首页">
           <span>Tangshi</span>
           <strong>300</strong>
-          <em>唐诗三百</em>
+          <Image src={stampLogo} alt="唐诗三百印章" className="brand-stamp" priority />
         </Link>
         <nav className="desktop-nav" aria-label="主导航">
           {navItems.map(({ href, label, icon: Icon, key }) => (
@@ -39,10 +41,6 @@ export function AppNavigation() {
             </Link>
           ))}
         </nav>
-        <div className="account-menu" id="profile">
-          <span className="avatar-painting" aria-hidden="true" />
-          <ChevronDown size={16} aria-hidden="true" />
-        </div>
         <button className="mobile-menu-button" type="button" aria-label="打开菜单">
           <Menu size={24} />
         </button>

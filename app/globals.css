@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@300;500;700&display=swap");
+
 :root {
   --paper: #f8f4ea;
   --paper-soft: #fffaf0;
@@ -15,6 +17,8 @@
   --danger: #d1493f;
   --shadow: 0 18px 46px rgba(45, 35, 20, 0.12);
   --shadow-soft: 0 10px 26px rgba(45, 35, 20, 0.08);
+  --font-serif: "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --font-brush: "Ma Shan Zheng", "STKaiti", "KaiTi", cursive;
 }
 
 * {
@@ -26,7 +30,9 @@ body {
   min-height: 100%;
   margin: 0;
   color: var(--ink);
-  font-family: "Noto Serif SC", "Songti SC", "SimSun", Georgia, serif;
+  font-size: 15px;
+  font-family: var(--font-serif);
+  font-weight: 300;
 }
 
 body {
@@ -81,7 +87,7 @@ input:disabled {
   grid-template-columns: minmax(190px, 1fr) auto minmax(94px, 1fr);
   align-items: center;
   gap: 24px;
-  min-height: 86px;
+  min-height: 70px;
   border-bottom: 1px solid rgba(116, 91, 52, 0.16);
   background: rgba(255, 250, 240, 0.9);
   padding: 0 clamp(18px, 5vw, 56px);
@@ -94,7 +100,7 @@ input:disabled {
   width: fit-content;
   color: var(--ink);
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(28px, 3vw, 39px);
+  font-size: clamp(26px, 2.6vw, 34px);
   line-height: 1;
 }
 
@@ -103,18 +109,11 @@ input:disabled {
   font-weight: 400;
 }
 
-.brand-wordmark em {
-  display: inline-grid;
-  width: 34px;
-  height: 42px;
-  margin-left: 12px;
-  place-items: center;
-  border: 2px solid #ca4a3d;
-  color: #ca4a3d;
-  font-size: 12px;
-  font-style: normal;
-  line-height: 1.05;
-  writing-mode: vertical-rl;
+.brand-stamp {
+  width: 32px;
+  height: 32px;
+  margin-left: 10px;
+  object-fit: contain;
 }
 
 .desktop-nav {
@@ -129,7 +128,7 @@ input:disabled {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  min-height: 86px;
+  min-height: 70px;
   color: var(--ink-soft);
   font-size: 15px;
 }
@@ -150,24 +149,6 @@ input:disabled {
   content: "";
 }
 
-.account-menu {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 10px;
-}
-
-.avatar-painting {
-  width: 42px;
-  height: 42px;
-  border: 2px solid var(--paper-soft);
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 50% 24%, #f0c7a8 0 18%, transparent 19%),
-    linear-gradient(180deg, #1c2624 0 46%, #121716 47% 100%);
-  box-shadow: 0 5px 16px rgba(23, 32, 29, 0.16);
-}
-
 .mobile-menu-button,
 .bottom-tabs {
   display: none;
@@ -176,12 +157,12 @@ input:disabled {
 .page {
   width: min(1160px, calc(100% - 40px));
   margin: 0 auto;
-  padding: clamp(28px, 5vw, 44px) 0 74px;
+  padding: clamp(22px, 4vw, 34px) 0 74px;
 }
 
 .page::before {
   position: fixed;
-  top: 116px;
+  top: 92px;
   right: 0;
   bottom: 0;
   left: 0;
@@ -193,6 +174,19 @@ input:disabled {
   pointer-events: none;
 }
 
+.page-home::after {
+  position: fixed;
+  inset: 70px 0 0;
+  z-index: -1;
+  background-image: var(--page-bg);
+  background-position: center 56px;
+  background-repeat: no-repeat;
+  background-size: min(980px, 78vw) auto;
+  content: "";
+  opacity: 0.18;
+  pointer-events: none;
+}
+
 .section-kicker,
 .section-title {
   display: inline-flex;
@@ -200,12 +194,11 @@ input:disabled {
   gap: 12px;
   margin: 0;
   color: var(--jade);
-  font-size: 22px;
-  font-weight: 800;
+  font-size: 20px;
+  font-weight: 700;
   line-height: 1.3;
 }
 
-.section-kicker::after,
 .ornament::after {
   display: inline-block;
   width: 74px;
@@ -220,12 +213,22 @@ input:disabled {
   margin: 0 0 18px;
 }
 
+.home-top-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 18px;
+}
+
 .greeting h1 {
   display: flex;
   align-items: center;
   gap: 9px;
   margin: 0 0 8px;
-  font-size: clamp(24px, 3vw, 30px);
+  font-family: var(--font-brush);
+  font-size: clamp(21px, 2.3vw, 26px);
+  font-weight: 400;
+  letter-spacing: 0.04em;
   line-height: 1.2;
 }
 
@@ -313,6 +316,16 @@ input:disabled {
   background: linear-gradient(180deg, #bd3e31, var(--cinnabar-dark));
 }
 
+.search-form .button {
+  border-color: rgba(13, 102, 120, 0.72);
+  background: linear-gradient(180deg, #13798b, #075a70);
+  box-shadow: 0 10px 22px rgba(13, 102, 120, 0.18);
+}
+
+.search-form .button:hover {
+  background: linear-gradient(180deg, #0f7184, #064f62);
+}
+
 .button.secondary {
   border-color: rgba(13, 102, 120, 0.5);
   background: rgba(255, 250, 240, 0.68);
@@ -354,6 +367,7 @@ input:disabled {
   grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.62fr);
   gap: 34px;
   align-items: start;
+  margin-bottom: 22px;
 }
 
 .home-main {
@@ -382,10 +396,61 @@ input:disabled {
 .featured-poem {
   position: relative;
   display: grid;
-  grid-template-columns: 240px 1fr;
-  gap: 36px;
-  min-height: 282px;
-  padding: 24px;
+  grid-template-columns: 178px minmax(0, 1fr);
+  align-items: center;
+  gap: 32px;
+  margin-top: 10px;
+  min-height: 286px;
+  overflow: hidden;
+  padding: 34px 46px 38px;
+}
+
+.featured-poem::before {
+  position: absolute;
+  inset: 16px 18px;
+  z-index: 0;
+  background-image: var(--card-bg);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  content: "";
+  mask-image: radial-gradient(ellipse at center, #000 0 62%, rgba(0, 0, 0, 0.64) 76%, transparent 100%);
+  opacity: 0.52;
+  pointer-events: none;
+}
+
+.featured-thumbnail-frame {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  width: 100%;
+  height: 228px;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 12px 28px rgba(45, 35, 20, 0.16);
+}
+
+.featured-thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.featured-copy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  align-content: center;
+  min-width: 0;
+  min-height: 228px;
+  padding-right: 26px;
+}
+
+.featured-detail-link {
+  position: absolute;
+  right: 0;
+  bottom: 0;
 }
 
 .featured-poem h2,
@@ -393,7 +458,10 @@ input:disabled {
 .search-card h2,
 .review-row h2 {
   margin: 0;
-  font-size: clamp(27px, 4vw, 38px);
+  font-family: var(--font-brush);
+  font-size: clamp(25px, 3.2vw, 34px);
+  font-weight: 400;
+  letter-spacing: 0.04em;
   line-height: 1.25;
 }
 
@@ -409,8 +477,9 @@ input:disabled {
 .poem-lines,
 .poem-detail-lines {
   color: var(--ink);
-  font-size: clamp(18px, 2.1vw, 24px);
-  line-height: 2;
+  font-size: clamp(17px, 1.75vw, 22px);
+  font-weight: 500;
+  line-height: 1.9;
 }
 
 .poem-lines {
@@ -426,6 +495,7 @@ input:disabled {
   position: absolute;
   top: 22px;
   right: 22px;
+  z-index: 1;
   color: var(--gold);
 }
 
@@ -446,7 +516,7 @@ input:disabled {
   background: rgba(13, 102, 120, 0.06);
   color: var(--jade);
   padding: 2px 10px;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .filter-row {
@@ -519,7 +589,8 @@ input:disabled {
 
 .learning-tile strong {
   display: block;
-  font-size: 24px;
+  font-size: 21px;
+  font-weight: 700;
 }
 
 .learning-tile span span {
@@ -538,17 +609,30 @@ input:disabled {
 }
 
 .progress-ring {
+  --progress: 0%;
   display: grid;
   width: 78px;
   height: 78px;
   place-items: center;
-  border: 7px solid #eadbc3;
-  border-right-color: var(--cinnabar);
-  border-bottom-color: var(--cinnabar);
   border-radius: 50%;
+  background: conic-gradient(var(--cinnabar) var(--progress), #eadbc3 0);
   color: var(--cinnabar);
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 800;
+}
+
+.progress-ring::before {
+  grid-area: 1 / 1;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--paper-soft);
+  content: "";
+}
+
+.progress-ring span {
+  z-index: 1;
+  grid-area: 1 / 1;
 }
 
 .progress-card p {
@@ -583,7 +667,7 @@ input:disabled {
 
 .stat-card strong {
   color: var(--ink);
-  font-size: 25px;
+  font-size: 23px;
   font-weight: 500;
 }
 
@@ -608,7 +692,8 @@ input:disabled {
 
 .panel-heading h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: 18px;
+  font-weight: 700;
 }
 
 .panel-heading a,
@@ -633,7 +718,8 @@ input:disabled {
 
 .mini-row h3 {
   margin: 0 0 2px;
-  font-size: 17px;
+  font-size: 16px;
+  font-weight: 700;
 }
 
 .mini-row p {
@@ -1148,6 +1234,12 @@ input:disabled {
   line-height: 1.75;
 }
 
+.mini-empty {
+  margin-top: 10px;
+  padding: 16px;
+  text-align: left;
+}
+
 .ink-art {
   position: relative;
   overflow: hidden;
@@ -1331,11 +1423,10 @@ input:disabled {
 @media (max-width: 980px) {
   .app-header {
     grid-template-columns: 1fr auto;
-    min-height: 74px;
+    min-height: 64px;
   }
 
-  .desktop-nav,
-  .account-menu {
+  .desktop-nav {
     display: none;
   }
 
@@ -1356,7 +1447,7 @@ input:disabled {
     left: 0;
     z-index: 35;
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     border-top: 1px solid rgba(116, 91, 52, 0.18);
     background: rgba(255, 250, 240, 0.94);
     padding: 7px 8px calc(7px + env(safe-area-inset-bottom));
@@ -1392,6 +1483,10 @@ input:disabled {
     justify-self: stretch;
   }
 
+  .home-top-row {
+    grid-template-columns: 1fr;
+  }
+
   .stats-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1413,41 +1508,58 @@ input:disabled {
 @media (max-width: 660px) {
   .page {
     width: min(100% - 24px, 1160px);
-    padding-top: 22px;
+    padding-top: 18px;
   }
 
   .brand-wordmark {
-    font-size: 30px;
+    font-size: 28px;
   }
 
-  .brand-wordmark em {
+  .brand-stamp {
     width: 28px;
-    height: 36px;
-    font-size: 10px;
+    height: 28px;
+    margin-left: 8px;
   }
 
   .featured-poem,
   .poem-card,
   .search-card,
   .review-row {
-    grid-template-columns: 94px 1fr;
+    grid-template-columns: 84px 1fr;
     gap: 14px;
     padding: 12px;
   }
 
-  .featured-poem .ink-art {
-    min-height: 150px;
+  .featured-poem {
+    min-height: 0;
+    padding: 12px 14px 34px;
+  }
+
+  .featured-poem::before {
+    inset: 8px;
+    opacity: 0.48;
+  }
+
+  .featured-thumbnail-frame {
+    align-self: start;
+    height: 112px;
+    max-height: none;
+  }
+
+  .featured-copy {
+    min-height: 0;
+    padding-right: 0;
   }
 
   .featured-poem h2,
   .search-card h2,
   .review-row h2 {
-    font-size: 21px;
+    font-size: 19px;
   }
 
   .poem-lines,
   .excerpt {
-    font-size: 14px;
+    font-size: 13px;
     line-height: 1.65;
   }
 
@@ -1468,6 +1580,7 @@ input:disabled {
   }
 
   .search-form .button {
+    width: auto;
     min-height: 42px;
     padding: 8px 14px;
     font-size: 13px;
