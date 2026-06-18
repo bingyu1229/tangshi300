@@ -8,11 +8,14 @@ import {
   ChevronRight,
   Flame,
   Medal,
+  Moon,
   PenLine,
   Search,
+  Sun,
 } from "lucide-react";
 import { HomeRecommendations } from "@/components/HomeRecommendations";
 import { getDailyPoem, getRecentLearning, getReviewBook, listPoems } from "@/lib/db/poems";
+import pageBackground from "@/ui/page-backgroud-sm.jpg";
 import poemCardBackground from "@/ui/poem-card-background-sm.png";
 import poemThumbnail from "@/ui/thumbnail-sm.png";
 
@@ -24,6 +27,11 @@ function greetingForNow() {
   if (hour < 12) return "早安，诗友";
   if (hour < 18) return "午安，诗友";
   return "晚安，诗友";
+}
+
+function isDaytimeNow() {
+  const hour = new Date().getHours();
+  return hour >= 6 && hour < 18;
 }
 
 export default async function HomePage() {
@@ -39,13 +47,15 @@ export default async function HomePage() {
   const totalCount = poems.length;
   const goalCount = Math.max(5, masteredCount);
   const progressPercent = goalCount ? Math.min(100, Math.round((masteredCount / goalCount) * 100)) : 0;
+  const isDaytime = isDaytimeNow();
+  const GreetingIcon = isDaytime ? Sun : Moon;
 
   return (
     <div
       className="page page-home"
       style={
         {
-          "--page-bg": `url(${poemCardBackground.src})`,
+          "--page-bg": `url(${pageBackground.src})`,
           "--card-bg": `url(${poemCardBackground.src})`,
         } as CSSProperties
       }
@@ -58,7 +68,7 @@ export default async function HomePage() {
                 <div className="greeting">
                   <h1>
                     {greetingForNow()}
-                    <span className="gold-dot" />
+                    <GreetingIcon className={`greeting-icon ${isDaytime ? "is-day" : "is-night"}`} size={18} aria-hidden="true" />
                   </h1>
                   <p>每天进步一点点，诗心自明。</p>
                 </div>
@@ -81,72 +91,74 @@ export default async function HomePage() {
 
               <div>
                 <p className="section-kicker">今日推荐</p>
-                <article className="panel featured-poem">
-                  <div className="featured-thumbnail-frame">
-                    <Image
-                      src={poemThumbnail}
-                      alt={`${dailyPoem.title} 水墨缩略图`}
-                      className="featured-thumbnail"
-                      fill
-                      sizes="(max-width: 660px) 84px, 188px"
-                      priority
-                      placeholder="blur"
-                    />
-                  </div>
-                  <div className="featured-copy">
-                    <h2>{dailyPoem.title}</h2>
-                    <div className="poem-meta">
-                      <span>{dailyPoem.author}</span>
-                      <span>【唐代】</span>
+                <div className="featured-content-row">
+                  <article className="panel featured-poem">
+                    <div className="featured-thumbnail-frame">
+                      <Image
+                        src={poemThumbnail}
+                        alt={`${dailyPoem.title} 水墨缩略图`}
+                        className="featured-thumbnail"
+                        fill
+                        sizes="(max-width: 660px) 84px, 188px"
+                        priority
+                        placeholder="blur"
+                      />
                     </div>
-                    <div className="poem-lines">
-                      {dailyPoem.lines.slice(0, 4).map((line) => (
-                        <p key={line}>{line}</p>
-                      ))}
+                    <div className="featured-copy">
+                      <h2>{dailyPoem.title}</h2>
+                      <div className="poem-meta">
+                        <span>{dailyPoem.author}</span>
+                        <span>【唐代】</span>
+                      </div>
+                      <div className="poem-lines">
+                        {dailyPoem.lines.slice(0, 4).map((line) => (
+                          <p key={line}>{line}</p>
+                        ))}
+                      </div>
+                      <div className="tag-row">
+                        <span className="tag">{dailyPoem.genre || "唐诗"}</span>
+                        <span className="tag">推荐</span>
+                      </div>
+                      <Link className="detail-link featured-detail-link" href={`/poems/${dailyPoem.id}`}>
+                        查看详情 <ChevronRight size={16} />
+                      </Link>
                     </div>
-                    <div className="tag-row">
-                      <span className="tag">{dailyPoem.genre || "唐诗"}</span>
-                      <span className="tag">推荐</span>
-                    </div>
-                    <Link className="detail-link featured-detail-link" href={`/poems/${dailyPoem.id}`}>
-                      查看详情 <ChevronRight size={16} />
+                    <span className="card-star">☆</span>
+                  </article>
+
+                  <aside className="side-stack">
+                    <Link className="learning-tile primary" href={`/poems/${dailyPoem.id}/test`}>
+                      <PenLine size={34} />
+                      <span>
+                        <strong>继续学习</strong>
+                        <span>今日计划：学习 1 首</span>
+                      </span>
+                      <ChevronRight size={22} />
                     </Link>
-                  </div>
-                  <span className="card-star">☆</span>
-                </article>
+                    <Link className="learning-tile secondary" href="/review-book">
+                      <BookMarked size={18} />
+                      <span>
+                        <strong>复习册</strong>
+                        <span>复习 {reviewBook.length} 首</span>
+                      </span>
+                      <ChevronRight size={22} />
+                    </Link>
+                    <div className="panel progress-card">
+                      <div className="progress-ring" style={{ "--progress": `${progressPercent}%` } as CSSProperties}>
+                        <span>{progressPercent}%</span>
+                      </div>
+                      <p>
+                        已学 {masteredCount} 首
+                        <br />
+                        目标 {goalCount} 首
+                        <br />
+                        唐诗总数 {totalCount} 首 <Flame size={15} color="#d85832" />
+                      </p>
+                    </div>
+                  </aside>
+                </div>
               </div>
             </div>
-
-            <aside className="side-stack">
-              <Link className="learning-tile primary" href={`/poems/${dailyPoem.id}/test`}>
-                <PenLine size={34} />
-                <span>
-                  <strong>继续学习</strong>
-                  <span>今日计划：学习 1 首</span>
-                </span>
-                <ChevronRight size={22} />
-              </Link>
-              <Link className="learning-tile secondary" href="/review-book">
-                <BookMarked size={18} />
-                <span>
-                  <strong>复习册</strong>
-                  <span>复习 {reviewBook.length} 首</span>
-                </span>
-                <ChevronRight size={22} />
-              </Link>
-              <div className="panel progress-card">
-                <div className="progress-ring" style={{ "--progress": `${progressPercent}%` } as CSSProperties}>
-                  <span>{progressPercent}%</span>
-                </div>
-                <p>
-                  已学 {masteredCount} 首
-                  <br />
-                  目标 {goalCount} 首
-                  <br />
-                  唐诗总数 {totalCount} 首 <Flame size={15} color="#d85832" />
-                </p>
-              </div>
-            </aside>
           </section>
 
           <section>

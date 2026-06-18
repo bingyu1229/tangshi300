@@ -1,9 +1,13 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BookOpen, ChevronRight, PenLine, Printer, Share2, Star } from "lucide-react";
+import type { CSSProperties } from "react";
+import { BookOpen, ChevronRight, ZoomIn } from "lucide-react";
 import { getPoemDetail } from "@/lib/db/poems";
 import { AudioPlayer } from "@/components/AudioPlayer";
-import { InkArtwork, artworkVariant } from "@/components/InkArtwork";
+import { PoemPageActions } from "@/components/PoemPageActions";
+import pageBackground from "@/ui/page-backgroud-sm.jpg";
+import poemThumbnail from "@/ui/thumbnail-sm.png";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +24,10 @@ export default async function PoemDetailPage({ params }: PageProps) {
   }
 
   return (
-    <div className="page">
+    <div
+      className="page page-poem"
+      style={{ "--page-bg": `url(${pageBackground.src})` } as CSSProperties}
+    >
       <nav className="breadcrumb" aria-label="面包屑">
         <Link href="/">首页</Link>
         <ChevronRight size={14} />
@@ -29,14 +36,22 @@ export default async function PoemDetailPage({ params }: PageProps) {
         <span>{poem.title}</span>
       </nav>
       <section className="detail-layout" aria-label={`${poem.title} 详情`}>
-        <InkArtwork title={poem.title} variant={artworkVariant(poem.id)} size="large" zoomable />
+        <figure className="detail-art-frame">
+          <Image
+            src={poemThumbnail}
+            alt={`${poem.title} 水墨插图`}
+            fill
+            sizes="(max-width: 660px) 96px, 300px"
+            placeholder="blur"
+            priority
+          />
+          <span className="detail-zoom" aria-hidden="true">
+            <ZoomIn size={19} />
+          </span>
+        </figure>
         <div className="poem-detail-main">
           <div className="poem-detail-header">
             <h1 className="poem-detail-title">{poem.title}</h1>
-            <button className="favorite-action" type="button">
-              <Star size={20} />
-              收藏
-            </button>
           </div>
           <div className="poem-meta">
             <span>{poem.author}</span>
@@ -44,31 +59,14 @@ export default async function PoemDetailPage({ params }: PageProps) {
             <span className="tag">{poem.genre || "唐诗"}</span>
           </div>
           <AudioPlayer audio={poem.audio} text={`《${poem.title}》，${poem.author}。${poem.content}`} />
-          <div className="poem-detail-lines">
-            {poem.lines.map((line) => (
-              <p key={line}>{line}</p>
-            ))}
-          </div>
-          <div className="utility-actions">
-            <button className="icon-button" type="button">
-              <Share2 size={17} /> 分享
-            </button>
-            <button className="icon-button" type="button">
-              <Printer size={17} /> 打印
-            </button>
-          </div>
-          <div className="detail-actions">
-            <Link className="button" href={`/poems/${poem.id}/test`}>
-              <PenLine size={18} />
-              开始默写
-            </Link>
-            <Link className="button secondary" href="/review-book">
-              <BookOpen size={18} />
-              加入复习册
-            </Link>
-          </div>
+        </div>
+        <div className="poem-detail-lines">
+          {poem.lines.map((line) => (
+            <p key={line}>{line}</p>
+          ))}
         </div>
       </section>
+      <PoemPageActions poemId={poem.id} />
       <section className="accordion-stack" aria-label="诗词解析">
         <article className="accordion-card">
           <h2>
