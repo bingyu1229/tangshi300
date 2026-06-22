@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tangshi300 系统架构</title>
+    <style>
+      :root {
+        --paper: #f8f4ea;
+        --paper-soft: #fffaf0;
+        --ink: #17201d;
+        --muted: #625b52;
+        --line: rgba(116, 91, 52, 0.26);
+        --cinnabar: #b83a2e;
+        --jade: #0d6678;
+        --gold: #c59a4a;
+        --moss: #4b766f;
+        --shadow: 0 24px 60px rgba(45, 35, 20, 0.14);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background:
+          radial-gradient(circle at 8% 12%, rgba(197, 154, 74, 0.22), transparent 24%),
+          radial-gradient(circle at 86% 8%, rgba(13, 102, 120, 0.14), transparent 28%),
+          linear-gradient(180deg, #fffaf2 0%, var(--paper) 54%, #eadfcd 100%);
+        color: var(--ink);
+        font-family: "Noto Serif SC", "Songti SC", "SimSun", Georgia, serif;
+      }
+
+      body::before {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        background:
+          linear-gradient(90deg, rgba(23, 32, 29, 0.04), transparent 30% 70%, rgba(184, 58, 46, 0.05)),
+          repeating-linear-gradient(0deg, rgba(72, 54, 30, 0.035) 0 1px, transparent 1px 10px);
+        content: "";
+      }
+
+      main {
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 42px 0 56px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+        gap: 28px;
+        align-items: stretch;
+        min-height: 420px;
+      }
+
+      .hero-copy,
+      .hero-map,
+      .card,
+      .lane {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background:
+          linear-gradient(135deg, rgba(255, 250, 240, 0.96), rgba(248, 244, 234, 0.88)),
+          var(--paper-soft);
+        box-shadow: var(--shadow);
+      }
+
+      .hero-copy {
+        position: relative;
+        overflow: hidden;
+        padding: clamp(28px, 5vw, 56px);
+      }
+
+      .hero-copy::after {
+        position: absolute;
+        right: -70px;
+        bottom: -90px;
+        width: 360px;
+        height: 260px;
+        background:
+          radial-gradient(ellipse at 68% 20%, rgba(197, 154, 74, 0.48), transparent 18%),
+          linear-gradient(18deg, rgba(19, 32, 35, 0.2), transparent 62%),
+          radial-gradient(ellipse at 44% 100%, rgba(13, 102, 120, 0.22), transparent 60%);
+        content: "";
+        filter: blur(1px);
+        opacity: 0.9;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0 0 18px;
+        color: var(--jade);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .eyebrow::before {
+        width: 34px;
+        height: 2px;
+        background: var(--gold);
+        content: "";
+      }
+
+      h1 {
+        position: relative;
+        z-index: 1;
+        margin: 0;
+        font-size: clamp(42px, 7vw, 82px);
+        font-weight: 400;
+        line-height: 1.05;
+      }
+
+      .hero-copy p {
+        position: relative;
+        z-index: 1;
+        max-width: 670px;
+        margin: 22px 0 0;
+        color: var(--muted);
+        font-size: clamp(17px, 2vw, 21px);
+        line-height: 1.8;
+      }
+
+      .hero-badges {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 32px;
+      }
+
+      .badge {
+        border: 1px solid rgba(13, 102, 120, 0.26);
+        border-radius: 999px;
+        background: rgba(13, 102, 120, 0.07);
+        color: var(--jade);
+        padding: 8px 13px;
+        font-size: 13px;
+      }
+
+      .hero-map {
+        display: grid;
+        gap: 14px;
+        padding: 22px;
+      }
+
+      .mini-node {
+        display: grid;
+        grid-template-columns: 42px 1fr;
+        gap: 12px;
+        align-items: center;
+        border: 1px solid rgba(116, 91, 52, 0.2);
+        border-radius: 8px;
+        background: rgba(255, 250, 240, 0.68);
+        padding: 12px;
+      }
+
+      .mini-node strong,
+      .card strong,
+      .lane strong {
+        display: block;
+        font-size: 17px;
+      }
+
+      .mini-node span,
+      .card span,
+      .lane span {
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .mark {
+        display: grid;
+        width: 42px;
+        height: 42px;
+        place-items: center;
+        border-radius: 8px;
+        background: var(--cinnabar);
+        color: var(--paper-soft);
+        font-weight: 700;
+      }
+
+      .mark.teal {
+        background: var(--jade);
+      }
+
+      .mark.gold {
+        background: var(--gold);
+      }
+
+      .section {
+        margin-top: 34px;
+      }
+
+      .section h2 {
+        margin: 0 0 16px;
+        color: var(--jade);
+        font-size: clamp(25px, 3vw, 34px);
+        font-weight: 400;
+      }
+
+      .flow {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .card {
+        min-height: 172px;
+        padding: 18px;
+      }
+
+      .card small {
+        display: inline-block;
+        margin-bottom: 18px;
+        color: var(--cinnabar);
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .arrow {
+        display: grid;
+        align-items: center;
+        justify-items: center;
+        min-height: 172px;
+        color: var(--gold);
+        font-size: 38px;
+      }
+
+      .runtime-grid {
+        display: grid;
+        grid-template-columns: minmax(260px, 0.9fr) minmax(0, 1.1fr) minmax(260px, 0.9fr);
+        gap: 16px;
+      }
+
+      .lane {
+        padding: 20px;
+      }
+
+      .lane h3 {
+        margin: 0 0 16px;
+        font-size: 22px;
+        font-weight: 400;
+      }
+
+      .stack {
+        display: grid;
+        gap: 10px;
+      }
+
+      .pill {
+        border-left: 4px solid var(--jade);
+        border-radius: 8px;
+        background: rgba(255, 250, 240, 0.68);
+        padding: 12px;
+      }
+
+      .pill.hot {
+        border-left-color: var(--cinnabar);
+      }
+
+      .pill.gold {
+        border-left-color: var(--gold);
+      }
+
+      .schema {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .table-card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 250, 240, 0.72);
+        padding: 14px;
+      }
+
+      .table-card h3 {
+        margin: 0 0 8px;
+        color: var(--cinnabar);
+        font-size: 18px;
+      }
+
+      .table-card p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.65;
+      }
+
+      .footer-note {
+        margin-top: 36px;
+        border-top: 1px solid var(--line);
+        padding-top: 20px;
+        color: var(--muted);
+        line-height: 1.8;
+      }
+
+      code {
+        border: 1px solid rgba(116, 91, 52, 0.18);
+        border-radius: 6px;
+        background: rgba(255, 250, 240, 0.72);
+        padding: 2px 6px;
+        color: var(--cinnabar);
+        font-family: Consolas, "Liberation Mono", monospace;
+        font-size: 0.92em;
+      }
+
+      @media (max-width: 920px) {
+        .hero,
+        .runtime-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .flow {
+          grid-template-columns: 1fr;
+        }
+
+        .arrow {
+          min-height: 34px;
+          transform: rotate(90deg);
+        }
+
+        .schema {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      @media (max-width: 560px) {
+        main {
+          width: min(100% - 24px, 1180px);
+          padding-top: 24px;
+        }
+
+        .hero-copy,
+        .hero-map,
+        .lane,
+        .card {
+          padding: 16px;
+        }
+
+        .schema {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero" aria-label="架构概览">
+        <div class="hero-copy">
+          <p class="eyebrow">Tangshi300 Architecture</p>
+          <h1>本地优先的诗词学习，从 XML 走到每日练习。</h1>
+          <p>
+            Tangshi300 是一个紧凑的系统：确定性语料管线写入本地 SQLite 数据库，
+            Next.js 渲染学习体验，小型 API 路由负责更新学习者状态，无需远程后端。
+          </p>
+          <div class="hero-badges">
+            <span class="badge">Next.js App Router</span>
+            <span class="badge">sql.js SQLite</span>
+            <span class="badge">加权搜索索引</span>
+            <span class="badge">复习册状态机</span>
+            <span class="badge">音频兜底就绪</span>
+          </div>
+        </div>
+        <aside class="hero-map" aria-label="系统亮点">
+          <div class="mini-node">
+            <span class="mark">1</span>
+            <div><strong>准备</strong><span>解析 XML，稳定抽样 50 首诗，并生成 JSON。</span></div>
+          </div>
+          <div class="mini-node">
+            <span class="mark teal">2</span>
+            <div><strong>持久化</strong><span>将诗词、进度表、推荐和搜索词写入 SQLite。</span></div>
+          </div>
+          <div class="mini-node">
+            <span class="mark gold">3</span>
+            <div><strong>渲染</strong><span>服务端页面从仓储层读取数据，并水合聚焦的客户端交互。</span></div>
+          </div>
+          <div class="mini-node">
+            <span class="mark">4</span>
+            <div><strong>练习</strong><span>API 路由处理搜索刷新、测试答案和复习册移除。</span></div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="section" aria-label="数据管线">
+        <h2>数据管线</h2>
+        <div class="flow">
+          <article class="card">
+            <small>Source</small>
+            <strong><code>tangshi300.xml</code></strong>
+            <span>随项目提交的原始诗词语料。</span>
+          </article>
+          <div class="arrow">-&gt;</div>
+          <article class="card">
+            <small>Convert</small>
+            <strong><code>scripts/convert-tangshi-xml.ts</code></strong>
+            <span>解析 321 首诗，并写出完整 JSON 和 v1 样本 JSON。</span>
+          </article>
+          <div class="arrow">-&gt;</div>
+          <article class="card">
+            <small>Seed</small>
+            <strong><code>scripts/seed-db.ts</code></strong>
+            <span>创建 SQLite 数据行和加权 CJK/Latin 搜索词。</span>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" aria-label="运行时架构">
+        <h2>运行时架构</h2>
+        <div class="runtime-grid">
+          <article class="lane">
+            <h3>页面层</h3>
+            <div class="stack">
+              <div class="pill hot"><strong><code>app/page.tsx</code></strong><span>每日推荐、进度、最近学习和首页搜索。</span></div>
+              <div class="pill"><strong><code>app/search/page.tsx</code></strong><span>服务端初始化的诗库搜索。</span></div>
+              <div class="pill"><strong><code>app/poems/[id]</code></strong><span>诗词详情和默写测试路由。</span></div>
+              <div class="pill gold"><strong><code>app/review-book</code></strong><span>已掌握诗词、进度和移除流程。</span></div>
+            </div>
+          </article>
+
+          <article class="lane">
+            <h3>领域层</h3>
+            <div class="stack">
+              <div class="pill hot"><strong><code>lib/db/poems.ts</code></strong><span>列表、搜索、详情、推荐、复习和测试仓储。</span></div>
+              <div class="pill"><strong><code>lib/db/sqlite.ts</code></strong><span>加载 sql.js、确保 schema、持久化数据库文件。</span></div>
+              <div class="pill"><strong><code>lib/text.ts</code></strong><span>构建搜索词并归一化默写答案。</span></div>
+              <div class="pill gold"><strong><code>lib/poems/import.ts</code></strong><span>负责 XML 解析和稳定 v1 采样。</span></div>
+            </div>
+          </article>
+
+          <article class="lane">
+            <h3>交互层</h3>
+            <div class="stack">
+              <div class="pill hot"><strong><code>components/SearchClient.tsx</code></strong><span>搜索请求、筛选 chip、高亮和分页。</span></div>
+              <div class="pill"><strong><code>components/TestClient.tsx</code></strong><span>默写练习中的答案捕获和反馈。</span></div>
+              <div class="pill"><strong><code>components/AudioPlayer.tsx</code></strong><span>优先播放生成文件，否则使用浏览器语音兜底。</span></div>
+              <div class="pill gold"><strong><code>components/ReviewBookClient.tsx</code></strong><span>复习列表控制和移除/重学动作。</span></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" aria-label="SQLite schema">
+        <h2>SQLite Schema</h2>
+        <div class="schema">
+          <article class="table-card">
+            <h3>poems</h3>
+            <p>标准诗词内容、诗句、元数据、注释、译文、赏析和来源。</p>
+          </article>
+          <article class="table-card">
+            <h3>poem_audio</h3>
+            <p>可选生成音频元数据，关联 <code>public/audio</code> 下的文件。</p>
+          </article>
+          <article class="table-card">
+            <h3>learning_progress</h3>
+            <p>当前学习状态、掌握时间、最近测试时间和答题计数。</p>
+          </article>
+          <article class="table-card">
+            <h3>daily_recommendations</h3>
+            <p>按自然日持久化的一首推荐诗。</p>
+          </article>
+          <article class="table-card">
+            <h3>poem_search_terms</h3>
+            <p>面向标题、作者、题材、正文、注释、译文和赏析的加权搜索词。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" aria-label="运维说明">
+        <h2>运维说明</h2>
+        <div class="runtime-grid">
+          <article class="lane">
+            <h3>构建路径</h3>
+            <div class="stack">
+              <div class="pill"><strong><code>npm run prepare:v1</code></strong><span>转换数据并重新写入本地 SQLite。</span></div>
+              <div class="pill"><strong><code>npm run build</code></strong><span>验证生产 Next.js 构建。</span></div>
+            </div>
+          </article>
+          <article class="lane">
+            <h3>生成文件</h3>
+            <div class="stack">
+              <div class="pill hot"><strong>由 git 忽略</strong><span>SQLite 文件、构建输出、日志、依赖和生成音频保持本地化。</span></div>
+              <div class="pill"><strong>有意保留资产</strong><span>小型运行时图像和参考截图保留在 <code>ui/</code>。</span></div>
+            </div>
+          </article>
+          <article class="lane">
+            <h3>发布风险</h3>
+            <div class="stack">
+              <div class="pill gold"><strong>测试自动化</strong><span>Smoke tests 是下一层加固工作。</span></div>
+              <div class="pill"><strong>Qwen3-TTS</strong><span>生成音频需要完成最终端到端验证。</span></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <p class="footer-note">
+        本页面为 PR 评审自包含页面。它有意映射仓库边界，让评审者无需额外图表工具，
+        就能从这张可视化地图进入具体实现。
+      </p>
+    </main>
+  </body>
+</html>
