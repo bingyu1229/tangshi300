@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tangshi300 System Architecture</title>
+    <style>
+      :root {
+        --paper: #f8f4ea;
+        --paper-soft: #fffaf0;
+        --ink: #17201d;
+        --muted: #625b52;
+        --line: rgba(116, 91, 52, 0.26);
+        --cinnabar: #b83a2e;
+        --jade: #0d6678;
+        --gold: #c59a4a;
+        --moss: #4b766f;
+        --shadow: 0 24px 60px rgba(45, 35, 20, 0.14);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background:
+          radial-gradient(circle at 8% 12%, rgba(197, 154, 74, 0.22), transparent 24%),
+          radial-gradient(circle at 86% 8%, rgba(13, 102, 120, 0.14), transparent 28%),
+          linear-gradient(180deg, #fffaf2 0%, var(--paper) 54%, #eadfcd 100%);
+        color: var(--ink);
+        font-family: Georgia, "Times New Roman", serif;
+      }
+
+      body::before {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        background:
+          linear-gradient(90deg, rgba(23, 32, 29, 0.04), transparent 30% 70%, rgba(184, 58, 46, 0.05)),
+          repeating-linear-gradient(0deg, rgba(72, 54, 30, 0.035) 0 1px, transparent 1px 10px);
+        content: "";
+      }
+
+      main {
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 42px 0 56px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+        gap: 28px;
+        align-items: stretch;
+        min-height: 420px;
+      }
+
+      .hero-copy,
+      .hero-map,
+      .card,
+      .lane {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background:
+          linear-gradient(135deg, rgba(255, 250, 240, 0.96), rgba(248, 244, 234, 0.88)),
+          var(--paper-soft);
+        box-shadow: var(--shadow);
+      }
+
+      .hero-copy {
+        position: relative;
+        overflow: hidden;
+        padding: clamp(28px, 5vw, 56px);
+      }
+
+      .hero-copy::after {
+        position: absolute;
+        right: -70px;
+        bottom: -90px;
+        width: 360px;
+        height: 260px;
+        background:
+          radial-gradient(ellipse at 68% 20%, rgba(197, 154, 74, 0.48), transparent 18%),
+          linear-gradient(18deg, rgba(19, 32, 35, 0.2), transparent 62%),
+          radial-gradient(ellipse at 44% 100%, rgba(13, 102, 120, 0.22), transparent 60%);
+        content: "";
+        filter: blur(1px);
+        opacity: 0.9;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0 0 18px;
+        color: var(--jade);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .eyebrow::before {
+        width: 34px;
+        height: 2px;
+        background: var(--gold);
+        content: "";
+      }
+
+      h1 {
+        position: relative;
+        z-index: 1;
+        margin: 0;
+        font-size: clamp(42px, 7vw, 88px);
+        font-weight: 400;
+        line-height: 0.95;
+      }
+
+      .hero-copy p {
+        position: relative;
+        z-index: 1;
+        max-width: 670px;
+        margin: 22px 0 0;
+        color: var(--muted);
+        font-size: clamp(17px, 2vw, 21px);
+        line-height: 1.7;
+      }
+
+      .hero-badges {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 32px;
+      }
+
+      .badge {
+        border: 1px solid rgba(13, 102, 120, 0.26);
+        border-radius: 999px;
+        background: rgba(13, 102, 120, 0.07);
+        color: var(--jade);
+        padding: 8px 13px;
+        font-size: 13px;
+      }
+
+      .hero-map {
+        display: grid;
+        gap: 14px;
+        padding: 22px;
+      }
+
+      .mini-node {
+        display: grid;
+        grid-template-columns: 42px 1fr;
+        gap: 12px;
+        align-items: center;
+        border: 1px solid rgba(116, 91, 52, 0.2);
+        border-radius: 8px;
+        background: rgba(255, 250, 240, 0.68);
+        padding: 12px;
+      }
+
+      .mini-node strong,
+      .card strong,
+      .lane strong {
+        display: block;
+        font-size: 17px;
+      }
+
+      .mini-node span,
+      .card span,
+      .lane span {
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .mark {
+        display: grid;
+        width: 42px;
+        height: 42px;
+        place-items: center;
+        border-radius: 8px;
+        background: var(--cinnabar);
+        color: var(--paper-soft);
+        font-weight: 700;
+      }
+
+      .mark.teal {
+        background: var(--jade);
+      }
+
+      .mark.gold {
+        background: var(--gold);
+      }
+
+      .section {
+        margin-top: 34px;
+      }
+
+      .section h2 {
+        margin: 0 0 16px;
+        color: var(--jade);
+        font-size: clamp(25px, 3vw, 34px);
+        font-weight: 400;
+      }
+
+      .flow {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .card {
+        min-height: 172px;
+        padding: 18px;
+      }
+
+      .card small {
+        display: inline-block;
+        margin-bottom: 18px;
+        color: var(--cinnabar);
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .arrow {
+        display: grid;
+        align-items: center;
+        justify-items: center;
+        min-height: 172px;
+        color: var(--gold);
+        font-size: 38px;
+      }
+
+      .runtime-grid {
+        display: grid;
+        grid-template-columns: minmax(260px, 0.9fr) minmax(0, 1.1fr) minmax(260px, 0.9fr);
+        gap: 16px;
+      }
+
+      .lane {
+        padding: 20px;
+      }
+
+      .lane h3 {
+        margin: 0 0 16px;
+        font-size: 22px;
+        font-weight: 400;
+      }
+
+      .stack {
+        display: grid;
+        gap: 10px;
+      }
+
+      .pill {
+        border-left: 4px solid var(--jade);
+        border-radius: 8px;
+        background: rgba(255, 250, 240, 0.68);
+        padding: 12px;
+      }
+
+      .pill.hot {
+        border-left-color: var(--cinnabar);
+      }
+
+      .pill.gold {
+        border-left-color: var(--gold);
+      }
+
+      .schema {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .table-card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 250, 240, 0.72);
+        padding: 14px;
+      }
+
+      .table-card h3 {
+        margin: 0 0 8px;
+        color: var(--cinnabar);
+        font-size: 18px;
+      }
+
+      .table-card p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      .footer-note {
+        margin-top: 36px;
+        border-top: 1px solid var(--line);
+        padding-top: 20px;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      code {
+        border: 1px solid rgba(116, 91, 52, 0.18);
+        border-radius: 6px;
+        background: rgba(255, 250, 240, 0.72);
+        padding: 2px 6px;
+        color: var(--cinnabar);
+        font-family: Consolas, "Liberation Mono", monospace;
+        font-size: 0.92em;
+      }
+
+      @media (max-width: 920px) {
+        .hero,
+        .runtime-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .flow {
+          grid-template-columns: 1fr;
+        }
+
+        .arrow {
+          min-height: 34px;
+          transform: rotate(90deg);
+        }
+
+        .schema {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      @media (max-width: 560px) {
+        main {
+          width: min(100% - 24px, 1180px);
+          padding-top: 24px;
+        }
+
+        .hero-copy,
+        .hero-map,
+        .lane,
+        .card {
+          padding: 16px;
+        }
+
+        .schema {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero" aria-label="Architecture overview">
+        <div class="hero-copy">
+          <p class="eyebrow">Tangshi300 Architecture</p>
+          <h1>Local-first poetry learning, from XML to daily practice.</h1>
+          <p>
+            Tangshi300 is a compact system: a deterministic corpus pipeline feeds a local SQLite database,
+            Next.js renders the study experience, and small API routes update learner state without needing a remote backend.
+          </p>
+          <div class="hero-badges">
+            <span class="badge">Next.js App Router</span>
+            <span class="badge">sql.js SQLite</span>
+            <span class="badge">Weighted search index</span>
+            <span class="badge">Review-book state machine</span>
+            <span class="badge">Audio fallback ready</span>
+          </div>
+        </div>
+        <aside class="hero-map" aria-label="System highlights">
+          <div class="mini-node">
+            <span class="mark">1</span>
+            <div><strong>Prepare</strong><span>Parse XML, sample 50 poems, and generate JSON.</span></div>
+          </div>
+          <div class="mini-node">
+            <span class="mark teal">2</span>
+            <div><strong>Persist</strong><span>Seed SQLite with poems, progress tables, recommendations, and search terms.</span></div>
+          </div>
+          <div class="mini-node">
+            <span class="mark gold">3</span>
+            <div><strong>Render</strong><span>Server pages read from the repository layer and hydrate focused client interactions.</span></div>
+          </div>
+          <div class="mini-node">
+            <span class="mark">4</span>
+            <div><strong>Practice</strong><span>API routes handle search refreshes, test answers, and review-book removal.</span></div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="section" aria-label="Data pipeline">
+        <h2>Data Pipeline</h2>
+        <div class="flow">
+          <article class="card">
+            <small>Source</small>
+            <strong><code>tangshi300.xml</code></strong>
+            <span>Raw poem corpus committed with the project.</span>
+          </article>
+          <div class="arrow">-&gt;</div>
+          <article class="card">
+            <small>Convert</small>
+            <strong><code>scripts/convert-tangshi-xml.ts</code></strong>
+            <span>Parses 321 poems and writes full plus v1 sample JSON.</span>
+          </article>
+          <div class="arrow">-&gt;</div>
+          <article class="card">
+            <small>Seed</small>
+            <strong><code>scripts/seed-db.ts</code></strong>
+            <span>Creates SQLite rows and weighted CJK/Latin search terms.</span>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" aria-label="Runtime architecture">
+        <h2>Runtime Architecture</h2>
+        <div class="runtime-grid">
+          <article class="lane">
+            <h3>Pages</h3>
+            <div class="stack">
+              <div class="pill hot"><strong><code>app/page.tsx</code></strong><span>Daily recommendation, progress, recent learning, and homepage search.</span></div>
+              <div class="pill"><strong><code>app/search/page.tsx</code></strong><span>Server-initialized poem library search.</span></div>
+              <div class="pill"><strong><code>app/poems/[id]</code></strong><span>Poem detail and dictation test routes.</span></div>
+              <div class="pill gold"><strong><code>app/review-book</code></strong><span>Mastered poems, progress, and removal flow.</span></div>
+            </div>
+          </article>
+
+          <article class="lane">
+            <h3>Domain Layer</h3>
+            <div class="stack">
+              <div class="pill hot"><strong><code>lib/db/poems.ts</code></strong><span>Repository for listing, search, detail, recommendations, review, and tests.</span></div>
+              <div class="pill"><strong><code>lib/db/sqlite.ts</code></strong><span>Loads sql.js, ensures schema, persists the database file.</span></div>
+              <div class="pill"><strong><code>lib/text.ts</code></strong><span>Builds search terms and normalizes recitation answers.</span></div>
+              <div class="pill gold"><strong><code>lib/poems/import.ts</code></strong><span>Owns XML parsing and stable v1 sampling.</span></div>
+            </div>
+          </article>
+
+          <article class="lane">
+            <h3>Interactions</h3>
+            <div class="stack">
+              <div class="pill hot"><strong><code>components/SearchClient.tsx</code></strong><span>Fetch search, filter chips, highlighting, and pagination.</span></div>
+              <div class="pill"><strong><code>components/TestClient.tsx</code></strong><span>Answer capture and feedback for dictation practice.</span></div>
+              <div class="pill"><strong><code>components/AudioPlayer.tsx</code></strong><span>Generated file playback when available, browser speech fallback otherwise.</span></div>
+              <div class="pill gold"><strong><code>components/ReviewBookClient.tsx</code></strong><span>Review list controls and remove/relearn actions.</span></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" aria-label="SQLite schema">
+        <h2>SQLite Schema</h2>
+        <div class="schema">
+          <article class="table-card">
+            <h3>poems</h3>
+            <p>Canonical poem content, lines, metadata, notes, translation, appreciation, and source.</p>
+          </article>
+          <article class="table-card">
+            <h3>poem_audio</h3>
+            <p>Optional generated audio metadata linked to files under <code>public/audio</code>.</p>
+          </article>
+          <article class="table-card">
+            <h3>learning_progress</h3>
+            <p>Current learner state, mastered time, latest test time, and answer counts.</p>
+          </article>
+          <article class="table-card">
+            <h3>daily_recommendations</h3>
+            <p>One persisted poem pick per calendar day.</p>
+          </article>
+          <article class="table-card">
+            <h3>poem_search_terms</h3>
+            <p>Weighted terms for title, author, genre, content, notes, translation, and appreciation search.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" aria-label="Operational notes">
+        <h2>Operational Notes</h2>
+        <div class="runtime-grid">
+          <article class="lane">
+            <h3>Build Path</h3>
+            <div class="stack">
+              <div class="pill"><strong><code>npm run prepare:v1</code></strong><span>Converts data and reseeds local SQLite.</span></div>
+              <div class="pill"><strong><code>npm run build</code></strong><span>Validates the production Next.js build.</span></div>
+            </div>
+          </article>
+          <article class="lane">
+            <h3>Generated Files</h3>
+            <div class="stack">
+              <div class="pill hot"><strong>Ignored by git</strong><span>SQLite files, build output, logs, dependencies, and generated audio stay local.</span></div>
+              <div class="pill"><strong>Intentional assets</strong><span>Small runtime images and reference screenshots remain in <code>ui/</code>.</span></div>
+            </div>
+          </article>
+          <article class="lane">
+            <h3>Release Risks</h3>
+            <div class="stack">
+              <div class="pill gold"><strong>Test automation</strong><span>Smoke tests are the next hardening layer.</span></div>
+              <div class="pill"><strong>Qwen3-TTS</strong><span>Generated audio needs a final end-to-end verification pass.</span></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <p class="footer-note">
+        This page is self-contained for PR review. It intentionally mirrors the repo boundaries so a reviewer can move
+        from this visual map to the implementation without needing a separate diagramming tool.
+      </p>
+    </main>
+  </body>
+</html>

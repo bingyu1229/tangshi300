@@ -262,6 +262,23 @@ export async function getReviewBook(): Promise<PoemSummary[]> {
   return rows.map(toSummary);
 }
 
+export async function getRecentLearning(limit = 2): Promise<PoemSummary[]> {
+  const db = await getDb();
+  const rows = allRows<PoemRow>(
+    db,
+    `SELECT p.*, lp.status, pa.status AS audio_status
+     FROM learning_progress lp
+     JOIN poems p ON p.id = lp.poem_id
+     LEFT JOIN poem_audio pa ON pa.poem_id = p.id
+     WHERE lp.status IN ('learning', 'review_book')
+     ORDER BY COALESCE(lp.last_tested_at, lp.mastered_at, lp.updated_at) DESC
+     LIMIT ?`,
+    [limit],
+  );
+
+  return rows.map(toSummary);
+}
+
 export async function removeFromReviewBook(poemId: string): Promise<void> {
   const db = await getDb();
   const now = new Date().toISOString();

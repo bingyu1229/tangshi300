@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>水墨意境 UI Demo</title>
+    <!-- 引入谷歌字体：马善政毛笔字体 和 Noto Serif SC -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@300;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- 全局重置与基础设置 --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #e0e0e0; /* 浏览器背景，深一点以便突出卡片 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Noto Serif SC', 'SimSun', serif;
+            overflow: hidden;
+        }
+
+        /* --- 主容器：强制正方形 --- */
+        .ink-demo-container {
+            /* 响应式大小：在小屏幕自动缩小，但最大不超过 500px */
+            width: min(90vw, 500px);
+            aspect-ratio: 1 / 1;
+            position: relative;
+            background-color: #F8F5F0; /* 宣纸白 */
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            overflow: hidden;
+            border-radius: 2px;
+            /* 解决可能的子元素溢出问题 */
+            contain: content;
+        }
+
+        /* --- 宣纸肌理层 (背景噪音) --- */
+        .paper-texture {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.6;
+            pointer-events: none; /* 确保不干扰交互 */
+            z-index: 1;
+            /* SVG 噪点模拟纸张纤维 */
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E");
+        }
+
+        /* --- 水墨山水层 (视觉核心) --- */
+        .landscape-layer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* 通用山体样式 */
+        .mountain {
+            position: absolute;
+            bottom: -10%;
+            border-radius: 50% 50% 0 0;
+            filter: blur(8px); /* 墨晕效果关键 */
+            transition: transform 0.5s ease-out;
+        }
+
+        /* 远山 (淡墨) */
+        .mountain.far {
+            width: 80%;
+            height: 40%;
+            right: -10%;
+            background: linear-gradient(to top, #999999, transparent);
+            opacity: 0.4;
+            filter: blur(15px);
+            animation: breathe 8s infinite alternate ease-in-out;
+        }
+
+        /* 中景 (重墨) */
+        .mountain.mid {
+            width: 70%;
+            height: 35%;
+            left: -10%;
+            background: linear-gradient(15deg, #666666, #999999);
+            opacity: 0.7;
+            filter: blur(10px);
+            animation: float 10s infinite alternate ease-in-out;
+        }
+
+        /* 近景 (焦墨/浓墨) */
+        .mountain.near {
+            width: 100%;
+            height: 25%;
+            bottom: -5%;
+            left: 0;
+            /* 复杂的渐变模拟笔触 */
+            background: radial-gradient(circle at 30% 100%, #1a1a1a 0%, #333333 40%, transparent 80%);
+            filter: blur(4px) contrast(1.2);
+            opacity: 0.9;
+        }
+
+        /* 墨点装饰 (泼墨) */
+        .ink-splash {
+            position: absolute;
+            background: #1a1a1a;
+            border-radius: 50%;
+            filter: blur(2px);
+            opacity: 0.8;
+        }
+
+        /* --- 内容排版层 --- */
+        .content-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            padding: clamp(20px, 8%, 40px);
+            display: flex;
+            justify-content: space-between; /* 左右分布 */
+        }
+
+        /* 右侧：标题区 (竖排) */
+        .text-group-right {
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            height: fit-content;
+        }
+
+        .main-title {
+            font-family: 'Ma Shan Zheng', cursive; /* 书法字体 */
+            font-size: clamp(2rem, 8vw, 3.5rem);
+            color: #1a1a1a;
+            letter-spacing: 0.2em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .sub-title {
+            font-size: clamp(0.8rem, 3vw, 1rem);
+            color: #666666;
+            letter-spacing: 0.1em;
+            border-right: 1px solid rgba(0,0,0,0.1); /* 装饰线 */
+            padding-right: 10px;
+            margin-right: 5px;
+            /* English reads better sideways in vertical mode */
+            text-orientation: mixed;
+        }
+
+        /* 左侧：描述与印章 (竖排) */
+        .text-group-left {
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end; /* 靠下对齐 */
+            align-items: center;
+            gap: 1.5rem;
+            padding-bottom: 20px;
+        }
+
+        .poetic-text {
+            font-size: clamp(0.8rem, 3vw, 1rem);
+            color: #333333;
+            line-height: 1.8;
+            font-weight: 500;
+            /* English reads better sideways in vertical mode */
+            text-orientation: mixed;
+        }
+
+        /* --- 交互组件：印章按钮 --- */
+        .seal-button {
+            position: relative;
+            width: clamp(50px, 12vw, 70px);
+            height: clamp(50px, 12vw, 70px);
+            background-color: #C41E3A; /* 朱红 */
+            color: #F8F5F0;
+            border: none;
+            cursor: pointer;
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: clamp(1rem, 4vw, 1.5rem);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            writing-mode: horizontal-tb; /* 印章内部文字横排或根据设计调整 */
+            border-radius: 4px; /* 略微圆角模拟磨损 */
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+            /* 模拟印泥不均匀 */
+            background-image: radial-gradient(circle at 30% 30%, #d6304d, #C41E3A);
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' fill='white'/%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.2'/%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' fill='white'/%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.2'/%3E%3C/svg%3E");
+        }
+
+        .seal-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(196, 30, 58, 0.4);
+        }
+
+        .seal-button:active {
+            transform: scale(0.95);
+        }
+
+        /* 印章内的文字竖排 */
+        .seal-text {
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            line-height: 1;
+            font-weight: bold;
+        }
+
+        /* --- 动画关键帧 --- */
+        @keyframes breathe {
+            0% { transform: translateY(0) scale(1); opacity: 0.4; }
+            100% { transform: translateY(-10px) scale(1.02); opacity: 0.5; }
+        }
+
+        @keyframes float {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(10px); }
+        }
+
+        /* 墨迹扩散动画类 */
+        .ink-ripple {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: rgba(26, 26, 26, 0.8);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            animation: ripple-effect 1.5s ease-out forwards;
+            filter: blur(4px);
+            z-index: 5;
+        }
+
+        @keyframes ripple-effect {
+            0% {
+                width: 0;
+                height: 0;
+                opacity: 0.8;
+            }
+            100% {
+                width: 300px;
+                height: 300px;
+                opacity: 0;
+            }
+        }
+
+        /* 金色点缀 */
+        .gold-accent {
+            position: absolute;
+            width: 2px;
+            height: 50px;
+            background: linear-gradient(to bottom, transparent, #D4AF37, transparent);
+            opacity: 0.6;
+            top: 20%;
+            right: 15%;
+            z-index: 5;
+        }
+
+    </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/assets/index-xfgqKiMF.css">
+</head>
+<body>
+
+    <div class="ink-demo-container" id="container">
+        <!-- 纹理层 -->
+        <div class="paper-texture"></div>
+
+        <!-- 水墨山水背景 -->
+        <div class="landscape-layer">
+            <div class="mountain far"></div>
+            <div class="mountain mid"></div>
+            <div class="mountain near"></div>
+            <!-- 随机墨点 -->
+            <div class="ink-splash" style="width: 20px; height: 20px; top: 40%; left: 20%; opacity: 0.3;"></div>
+            <div class="ink-splash" style="width: 10px; height: 10px; top: 35%; left: 25%; opacity: 0.2;"></div>
+        </div>
+
+        <!-- 装饰 -->
+        <div class="gold-accent"></div>
+
+        <!-- 内容层 -->
+        <div class="content-layer">
+            <!-- 左侧区域：说明与按钮 -->
+            <div class="text-group-left">
+                <div class="poetic-text">
+                    Void & Substance<br>
+                    Spirit Resonance<br>
+                    Intent Before Pen
+                </div>
+
+                <button class="seal-button" id="sealBtn" aria-label="进入体验">
+                    <span class="seal-text">入画</span>
+                </button>
+            </div>
+
+            <!-- 右侧区域：标题 -->
+            <div class="text-group-right">
+                <div class="sub-title">Traditional Chinese Aesthetics</div>
+                <div class="main-title">水墨<br>意境</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 交互逻辑：点击印章产生墨迹扩散效果
+        const sealBtn = document.getElementById('sealBtn');
+        const container = document.getElementById('container');
+
+        sealBtn.addEventListener('click', function(e) {
+            // 获取点击位置相对于容器的坐标
+            const rect = container.getBoundingClientRect();
+            // 简单的居中扩散，为了美观，我们让它从按钮中心扩散
+            const btnRect = sealBtn.getBoundingClientRect();
+            const x = btnRect.left - rect.left + btnRect.width / 2;
+            const y = btnRect.top - rect.top + btnRect.height / 2;
+
+            createInkRipple(x, y);
+
+            // 模拟加载或进入下一页的反馈
+            setTimeout(() => {
+                console.log("进入应用...");
+            }, 800);
+        });
+
+        function createInkRipple(x, y) {
+            const ripple = document.createElement('div');
+            ripple.classList.add('ink-ripple');
+            ripple.style.left = `${x}px`;
+            ripple.style.top = `${y}px`;
+
+            // 随机化墨迹颜色深浅，增加自然感
+            const intensity = Math.random() > 0.5 ? 0.8 : 0.6;
+            ripple.style.background = `rgba(26, 26, 26, ${intensity})`;
+
+            container.appendChild(ripple);
+
+            // 动画结束后移除元素
+            ripple.addEventListener('animationend', () => {
+                ripple.remove();
+            });
+        }
+
+        // 鼠标移动时的微视差效果 (Qi Yun / 气韵)
+        container.addEventListener('mousemove', (e) => {
+            const mountains = document.querySelectorAll('.mountain');
+            const rect = container.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / rect.width;
+            const y = (e.clientY - rect.top) / rect.height;
+
+            mountains.forEach((mount, index) => {
+                const speed = (index + 1) * 10; // 不同的层级不同速度
+                const moveX = (x - 0.5) * speed;
+                const moveY = (y - 0.5) * speed * 0.5;
+
+                // 保持原有的 transform 动画基础上添加偏移
+                // 注意：这里简单处理，实际项目中最好用 requestAnimationFrame
+                mount.style.transform = `translate(${moveX}px, ${moveY}px)`;
+            });
+        });
+
+        // 鼠标移出复位
+        container.addEventListener('mouseleave', () => {
+             const mountains = document.querySelectorAll('.mountain');
+             mountains.forEach(mount => {
+                 mount.style.transform = 'translate(0, 0)';
+             });
+        });
+    </script>
+</body>
+</html>
