@@ -7,6 +7,8 @@
     "dev:clean-env": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/with-clean-path.ps1 npm run dev",
     "build": "next build",
     "start": "next start",
+    "test": "npm run test:smoke",
+    "test:smoke": "tsx --test test/*.test.ts",
     "convert:data": "tsx scripts/convert-tangshi-xml.ts",
     "seed": "tsx scripts/seed-db.ts",
     "audio:generate": "tsx scripts/generate-audio.ts",
